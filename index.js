@@ -1,4 +1,4 @@
 import { AppRegistry } from 'react-native';
-import App from './App';
+import MyApp from './App';
 
-AppRegistry.registerComponent('HighlightReel', () => App);
+AppRegistry.registerComponent('HighlightReel', () => MyApp);
