@@ -2,9 +2,10 @@
 import React, { Component } from 'react';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
-import * as Actions from '../actions';
+import * as Actions from './../../actions';
+const styles = require('./style');
 
-import { View, TouchableHighlight, Text, StyleSheet } from 'react-native';
+import { View, TouchableHighlight, Text } from 'react-native';
 
 class Login extends Component{
 	onLoginButtonPress = () => {
@@ -32,15 +33,6 @@ class Login extends Component{
 		);
 	}
 };
-
-const styles = StyleSheet.create({
-  tester: {
-		flex: 1,
-    flexDirection: 'column',
-    justifyContent: 'center',
-    alignItems: 'center',
-  }
-});
 
 function mapStateToProps(state) { return {user: state.userReducers.user}; }
 function mapDispatchToProps(dispatch) { return bindActionCreators(Actions, dispatch); }
