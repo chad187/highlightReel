@@ -16,7 +16,34 @@ const styles = StyleSheet.create({
     justifyContent: 'space-around',
     alignItems: 'flex-end',
     marginBottom: 25,
+    backgroundColor: 'powderblue'
+  },
+  controlBoxSmall: {
+    flex: 1,
+    flexDirection: 'column',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    backgroundColor: 'steelblue'
     
+  },
+  sliderContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+    backgroundColor: 'green'
+    // marginBottom: 175,
+    // marginTop: 260,
+  },
+  slider: {
+    flex:1,
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'center',
+    transform: [
+      { rotateZ : '-90deg' },
+    ],
+
   }
 });
 
