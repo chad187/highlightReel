@@ -1,29 +1,34 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Dimensions } from 'react-native';
+
+const { width, height } = Dimensions.get('window');
 
 const styles = StyleSheet.create({
-  container: {
+  wholeContainer: {
     flex: 1,
     flexDirection: 'row',
   },
   recordButton: {
     borderRadius: 115,
     width: 90,
-    height: 90
+    height: 90,
+    backgroundColor: 'blue',
   },
-  controlBox: {
+  buttonContainer: {
     flex: 1,
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'flex-end',
     marginBottom: 25,
-    backgroundColor: 'powderblue'
+    backgroundColor: 'orange',
+    width: width,
   },
-  controlBoxSmall: {
+  innerContainer: {
     flex: 1,
     flexDirection: 'column',
     justifyContent: 'space-around',
     alignItems: 'center',
-    backgroundColor: 'steelblue'
+    height: height,
+    backgroundColor: 'yellow'
     
   },
   sliderContainer: {
@@ -31,18 +36,21 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'flex-end',
     alignItems: 'center',
+    width: width,
     backgroundColor: 'green'
     // marginBottom: 175,
     // marginTop: 260,
   },
   slider: {
-    flex:1,
-    flexDirection: 'column',
-    justifyContent: 'center',
-    alignItems: 'center',
+    flex:0,
+    // flexDirection: 'column',
+    // justifyContent: 'flex-end',
+    // alignItems: 'center',
+    // height: height * .5,
     transform: [
       { rotateZ : '-90deg' },
     ],
+    backgroundColor: 'white',
 
   }
 });

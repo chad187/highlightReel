@@ -57,7 +57,7 @@ class MyCamera extends Component {
   	const { isRecording, previousVid, cameraBack } = this.props;
   	const cameraDirection = cameraBack ? Camera.constants.Type.back : Camera.constants.Type.front;
     return (
-      <View id={1} style={styles.container}>
+      <View id={1} style={styles.wholeContainer}>
         <Camera style={{flex: 1}}
           ref={cam => this.camera=cam}
           aspect={Camera.constants.Aspect.fill}
@@ -68,20 +68,18 @@ class MyCamera extends Component {
           audio={true}
           >
           {isRecording ? 
-          	<View id={2} style={styles.controlBox}>
+          	<View id={2} style={styles.buttonContainer}>
           		<ControlButton onPressHandler={this.startRecord.bind(this)} imageSource={{uri: previousVid}} />
 	          	<ControlButton onPressHandler={this.startRecord.bind(this)} imageSource={require('./saveClip.png')} />
 	          	<ControlButton onPressHandler={this.stopRecord.bind(this)} imageSource={require('./stopRec.png')} />
 	          </View>
           	:
-          	<View id={3} style={styles.controlBoxSmall}>
+          	<View id={3} style={styles.innerContainer}>
           		<View style={{width: 50, height: 50, backgroundColor: 'red'}} />
           		<View id={4} style={styles.sliderContainer}>
-          			<View />
-          			<View />
 	          		<HistoryBar disabled={false} style={styles.slider} />
 	          	</View>
-	          	<View id={5} style={styles.controlBox}>
+	          	<View id={5} style={styles.buttonContainer}>
 	          		<View style={{width: 50, height: 50, backgroundColor: 'steelblue'}} />
 	          		<ControlButton onPressHandler={this.startRecord.bind(this)} imageSource={require('./record.png')} />
 	          		<ControlButton onPressHandler={this.reverseCamera.bind(this)} imageSource={require('./reverseCamera.png')} />
