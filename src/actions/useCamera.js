@@ -2,6 +2,7 @@
 export const RECORD_STATUS = 'camera/RECORD_STATUS';
 export const PREVIOUS_VID = 'camera/PREVIOUS_VID';
 export const CAMERA_SIDE = 'camera/CAMERA_SIDE';
+export const RECORD_TIME = 'camera/RECORD_TIME';
 
 export const recordStatusChange = () => {
 	return {
@@ -19,5 +20,12 @@ export const previousVidChange = (vidURI = null) => {
 export const reverseCamera = () => {
 	return {
 		type: CAMERA_SIDE,
+	}
+}
+
+export const updateRecordTime = (recordTime = 15) => {
+	return {
+		type: RECORD_TIME,
+		recordTime: recordTime,
 	}
 }

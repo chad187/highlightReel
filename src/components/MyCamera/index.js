@@ -1,6 +1,6 @@
 'use strict';
 import React, { Component } from 'react';
-import { TouchableOpacity, View, Image, Slider } from 'react-native';
+import { TouchableOpacity, View, Image, Slider, Text } from 'react-native';
 import Camera from 'react-native-camera';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
@@ -15,15 +15,6 @@ class MyCamera extends Component {
 
     this.camera = null;
   }
-
-	// componentWillMount () {
-	// 	CameraRoll.getPhotos({first: 1, assetType: 'Videos'}).then((value) => {
-	// 		console.log(value);
- //  		this.props.previousVidChange(value.edges[0].node.image.uri);
-	// 	}).catch((e) => {
-	// 		console.log(e);
-	// 	});
-	// }
 
 	startRecord() {
 		if (this.camera) {
@@ -54,7 +45,7 @@ class MyCamera extends Component {
   }
 
   render() {
-  	const { isRecording, previousVid, cameraBack } = this.props;
+  	const { isRecording, previousVid, cameraBack, recordTime, updateRecordTime } = this.props;
   	const cameraDirection = cameraBack ? Camera.constants.Type.back : Camera.constants.Type.front;
     return (
       <View id={1} style={styles.wholeContainer}>
@@ -68,19 +59,25 @@ class MyCamera extends Component {
           audio={true}
           >
           {isRecording ? 
-          	<View id={2} style={styles.buttonContainer}>
-          		<ControlButton onPressHandler={this.startRecord.bind(this)} imageSource={{uri: previousVid}} />
-	          	<ControlButton onPressHandler={this.startRecord.bind(this)} imageSource={require('./saveClip.png')} />
-	          	<ControlButton onPressHandler={this.stopRecord.bind(this)} imageSource={require('./stopRec.png')} />
-	          </View>
+          	<View style={styles.innerContainer}>
+	          	<View id={2} style={styles.buttonContainer}>
+	          		<View style={{width: 90, height: 90}} />
+		          	<ControlButton onPressHandler={this.startRecord.bind(this)} imageSource={require('./saveClip.png')} />
+		          	<ControlButton onPressHandler={this.stopRecord.bind(this)} imageSource={require('./stopRec.png')} />
+		          </View>
+		        </View>
           	:
           	<View id={3} style={styles.innerContainer}>
-          		<View style={{width: 50, height: 50, backgroundColor: 'red'}} />
+          		<View style={styles.timeContainer}>
+          			<Text style={styles.recordTime}>
+	          			{recordTime}s
+	        			</Text>
+          		</View>
           		<View id={4} style={styles.sliderContainer}>
-	          		<HistoryBar disabled={false} style={styles.slider} />
+	          		<HistoryBar disabled={false} style={styles.slider} updateMethod={updateRecordTime} />
 	          	</View>
-	          	<View id={5} style={styles.buttonContainer}>
-	          		<View style={{width: 50, height: 50, backgroundColor: 'steelblue'}} />
+          		<View id={5} style={styles.buttonContainer}>
+	          		<View style={{width: 90, height: 90, backgroundColor: 'steelblue'}} />
 	          		<ControlButton onPressHandler={this.startRecord.bind(this)} imageSource={require('./record.png')} />
 	          		<ControlButton onPressHandler={this.reverseCamera.bind(this)} imageSource={require('./reverseCamera.png')} />
 	          	</View>
@@ -103,13 +100,13 @@ const ControlButton = ({ onPressHandler, imageSource }) => {
 	);
 };
 
-const HistoryBar = ({ disabled, style }) => {
+const HistoryBar = ({ disabled, style, updateMethod }) => {
 	return(
 		<Slider
 			disabled={disabled}
 			maximumValue={60}
 			minimumValue={5}
-			onValueChanged= {() => {}}
+			onValueChange= {(value) => updateMethod(value)}
 			step={5}
 			style={style}
 			value={15}>
@@ -121,7 +118,8 @@ const mapStateToProps = (state) => {
 	return {
 		isRecording: state.cameraState.isRecording, 
 		previousVid: state.cameraState.previousVid,
-		cameraBack: state.cameraState.cameraBack
+		cameraBack: state.cameraState.cameraBack,
+		recordTime: state.cameraState.recordTime,
 	};
 };
 
