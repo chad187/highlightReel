@@ -77,7 +77,7 @@ class MyCamera extends Component {
 	          		<HistoryBar disabled={false} style={styles.slider} updateMethod={updateRecordTime} />
 	          	</View>
           		<View id={5} style={styles.buttonContainer}>
-	          		<View style={{width: 90, height: 90, backgroundColor: 'steelblue'}} />
+          			<ShowVid previousVid= {previousVid} showVids= {this.startRecord.bind(this)} />
 	          		<ControlButton onPressHandler={this.startRecord.bind(this)} imageSource={require('./record.png')} />
 	          		<ControlButton onPressHandler={this.reverseCamera.bind(this)} imageSource={require('./reverseCamera.png')} />
 	          	</View>
@@ -88,6 +88,20 @@ class MyCamera extends Component {
     );
   }
 }
+
+const ShowVid = ({previousVid, showVids}) => {
+	console.log(previousVid);
+	if (previousVid === null) {
+		return (
+			<View style={{width: 90, height: 90}} />
+		);
+	}
+  else {
+		return (
+			<ControlButton onPressHandler={showVids} imageSource={{uri: previousVid}} />
+		);
+	}
+};
 
 const ControlButton = ({ onPressHandler, imageSource }) => {
 	return (
