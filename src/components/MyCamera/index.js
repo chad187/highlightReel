@@ -20,6 +20,7 @@ class MyCamera extends Component {
 		if (this.camera) {
       const options = {};
 	    options.location = true;
+	    options.totalSeconds = this.props.recordTime * 2;
 	    this.camera.capture({metadata: options})
 	      .then((data) => {
 	      	console.log(data)
@@ -27,7 +28,7 @@ class MyCamera extends Component {
 	  			this.props.previousVidChange(data.path);
 	      })
 	      .catch(err => console.error(err));
-	    this.props.recordStatusChange();
+	    // this.props.recordStatusChange(); //I am not sure why this is here, I don't think it should be
     }
   }
 
@@ -54,6 +55,13 @@ class MyCamera extends Component {
 			}).catch(err => console.error('An error occurred', err));
   }
 
+  saveClip() {
+  	if(this.props.isRecording){
+  		this.stopRecord();
+  		this.startRecord();
+  	}
+  }
+
   render() {
   	const { isRecording, previousVid, cameraBack, recordTime, updateRecordTime } = this.props;
   	const cameraDirection = cameraBack ? Camera.constants.Type.back : Camera.constants.Type.front;
@@ -67,6 +75,7 @@ class MyCamera extends Component {
           keepAwake={true}
           type={cameraDirection}
           audio={true}
+
           >
           {isRecording ? 
           	<View style={styles.innerContainer}>
