@@ -1,6 +1,6 @@
 'use strict';
 import React, { Component } from 'react';
-import { TouchableOpacity, View, Image, Slider, Text } from 'react-native';
+import { TouchableOpacity, View, Image, Slider, Text, Linking } from 'react-native';
 import Camera from 'react-native-camera';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
@@ -44,6 +44,16 @@ class MyCamera extends Component {
   	this.props.reverseCamera();
   }
 
+  openPhotos() {
+  	Linking.canOpenURL('photos-redirect://').then(supported => {
+  		if (!supported) {
+    		console.log('Can\'t handle url: ' + url);
+  		} else {
+    		return Linking.openURL(url);
+  		}
+			}).catch(err => console.error('An error occurred', err));
+  }
+
   render() {
   	const { isRecording, previousVid, cameraBack, recordTime, updateRecordTime } = this.props;
   	const cameraDirection = cameraBack ? Camera.constants.Type.back : Camera.constants.Type.front;
@@ -77,7 +87,7 @@ class MyCamera extends Component {
 	          		<HistoryBar disabled={false} style={styles.slider} updateMethod={updateRecordTime} />
 	          	</View>
           		<View id={5} style={styles.buttonContainer}>
-          			<ShowVid previousVid= {previousVid} showVids= {this.startRecord.bind(this)} />
+          			<ShowVid previousVid= {previousVid} showVids= {this.openPhotos.bind(this)} />
 	          		<ControlButton onPressHandler={this.startRecord.bind(this)} imageSource={require('./record.png')} />
 	          		<ControlButton onPressHandler={this.reverseCamera.bind(this)} imageSource={require('./reverseCamera.png')} />
 	          	</View>
@@ -90,15 +100,14 @@ class MyCamera extends Component {
 }
 
 const ShowVid = ({previousVid, showVids}) => {
-	console.log(previousVid);
-	if (previousVid === null) {
+	if (previousVid) {
 		return (
-			<View style={{width: 90, height: 90}} />
+			<ControlButton onPressHandler={showVids} imageSource={{uri: previousVid}} />
 		);
 	}
   else {
 		return (
-			<ControlButton onPressHandler={showVids} imageSource={{uri: previousVid}} />
+			<View style={{width: 90, height: 90}} />
 		);
 	}
 };
