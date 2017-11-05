@@ -6,7 +6,12 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import * as Actions from './../../actions';
 import { CameraRoll } from 'react-native';
+import RNVideoEditor from 'react-native-video-editor';
+import { ProcessingManager } from 'react-native-video-processing';
+var RNFS = require('react-native-fs');
 const styles = require('./style');
+
+var previousTempVid;
 
 class MyCamera extends Component {
 
@@ -19,22 +24,22 @@ class MyCamera extends Component {
 	startRecord() {
 		if (this.camera) {
       const options = {};
-	    options.location = true;
-	    options.totalSeconds = this.props.recordTime * 2;
+	    // options.location = true;
+	    // options.totalSeconds = this.props.recordTime * 2;
 	    this.camera.capture({metadata: options})
 	      .then((data) => {
 	      	console.log(data)
-	      	this.props.recordStatusChange();
 	  			this.props.previousVidChange(data.path);
 	      })
 	      .catch(err => console.error(err));
-	    // this.props.recordStatusChange(); //I am not sure why this is here, I don't think it should be
+	    this.props.recordStatusChange(); //this happens when you start it
     }
   }
 
   stopRecord() {
   	if(this.camera){
 	  	this.camera.stopCapture();
+	  	this.props.recordStatusChange();
 	  }
   }
 
@@ -46,13 +51,13 @@ class MyCamera extends Component {
   }
 
   openPhotos() {
-  	Linking.canOpenURL('photos-redirect://').then(supported => {
-  		if (!supported) {
-    		console.log('Can\'t handle url: ' + url);
-  		} else {
-    		return Linking.openURL(url);
-  		}
-			}).catch(err => console.error('An error occurred', err));
+  	// Linking.canOpenURL('photos-redirect://').then(supported => {
+  	// 	if (!supported) {
+   //  		console.log('Can\'t handle url: ' + url);
+  	// 	} else {
+   //  		return Linking.openURL(url);
+  	// 	}
+			// }).catch(err => console.error('An error occurred', err));
   }
 
   saveClip() {
@@ -60,6 +65,69 @@ class MyCamera extends Component {
   		this.stopRecord();
   		this.startRecord();
   	}
+  }
+
+  joinVideos(clip1, clip2) {
+  	RNVideoEditor.merge(
+		  [clip1, clip2],
+		  (results) => {
+		    alert('Error: ' + results);
+		  },
+		  (results, file) => {
+		  	CameraRoll.saveToCameraRoll(file, 'video').then((value) => {
+		  		console.log(value);
+		  		this.props.previousVidChange(value);
+		  		this.deleteFile(clip1);
+		  		this.deleteFile(clip2);
+		  		alert('Success : ' + results + " file: " + file);
+		  	}).catch((e) => {
+		  		console.log(e);
+		  	});
+		  }
+		);
+  }
+
+  trimVideo(source, startTime, endTime) {
+    const options = {
+        startTime: startTime,
+        endTime: endTime,
+        saveToCameraRoll: true, // default is false // iOS only
+        saveWithCurrentDate: true, // default is false // iOS only
+    };
+
+    ProcessingManager.trim(source, options) // like VideoPlayer trim options
+          .then((data) => {
+          	console.log(data)//need to see what this data is before I know what to do with next lines
+       //    	CameraRoll.saveToCameraRoll(???, 'video').then((value) => {
+				  	// 	console.log(value);
+				  	// 	this.props.previousVidChange(value);
+				  	// 	this.deleteFile(source);
+				  	// }).catch((e) => {
+				  	// 	console.log(e);
+				  	// });
+          });
+  }
+
+  deleteFile(filepath) {
+  	RNFS.exists(filepath)
+    .then( (result) => {
+        console.log("file exists: ", result);
+
+        if(result){
+          return RNFS.unlink(filepath)
+            .then(() => {
+              console.log('FILE DELETED');
+            })
+            // `unlink` will throw an error, if the item to unlink does not exist
+            .catch((err) => {
+              console.log(err.message);
+            });
+        }
+
+      })
+      .catch((err) => {
+        console.log(err.message);
+      });
   }
 
   render() {
@@ -74,14 +142,13 @@ class MyCamera extends Component {
           // captureTarget={Camera.constants.CaptureTarget.disk}
           keepAwake={true}
           type={cameraDirection}
-          audio={true}
+          audio={true}>
 
-          >
           {isRecording ? 
-          	<View style={styles.innerContainer}>
+          	<View id={1} style={styles.innerContainer}>
 	          	<View id={2} style={styles.buttonContainer}>
 	          		<View style={{width: 90, height: 90}} />
-		          	<ControlButton onPressHandler={this.startRecord.bind(this)} imageSource={require('./saveClip.png')} />
+		          	<ControlButton onPressHandler={this.saveClip.bind(this)} imageSource={require('./saveClip.png')} />
 		          	<ControlButton onPressHandler={this.stopRecord.bind(this)} imageSource={require('./stopRec.png')} />
 		          </View>
 		        </View>
@@ -93,7 +160,7 @@ class MyCamera extends Component {
 	        			</Text>
           		</View>
           		<View id={4} style={styles.sliderContainer}>
-	          		<HistoryBar disabled={false} style={styles.slider} updateMethod={updateRecordTime} />
+	          		<HistoryBar id={7} style={styles.slider} updateMethod={updateRecordTime} recordTime={recordTime} />
 	          	</View>
           		<View id={5} style={styles.buttonContainer}>
           			<ShowVid previousVid= {previousVid} showVids= {this.openPhotos.bind(this)} />
@@ -132,17 +199,16 @@ const ControlButton = ({ onPressHandler, imageSource }) => {
 	);
 };
 
-const HistoryBar = ({ disabled, style, updateMethod }) => {
+const HistoryBar = ({ style, updateMethod, recordTime }) => {
 	return(
 		<Slider
-			disabled={disabled}
+			disabled={false}
 			maximumValue={60}
 			minimumValue={5}
 			onValueChange= {(value) => updateMethod(value)}
 			step={5}
 			style={style}
-			value={15}>
-		</Slider>
+			value={recordTime} />
 	);
 };
 
