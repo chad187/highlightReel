@@ -15,76 +15,77 @@ var previousTempVid;
 
 class MyCamera extends Component {
 
-	constructor(props) {
+  constructor(props) {
     super(props);
 
     this.camera = null;
   }
 
-	startRecord() {
-		if (this.camera) {
+  startRecord() {
+    if (this.camera) {
+      console.log("trying");
       const options = {};
-	    // options.location = true;
-	    // options.totalSeconds = this.props.recordTime * 2;
-	    this.camera.capture({metadata: options})
-	      .then((data) => {
-	      	console.log(data)
-	  			this.props.previousVidChange(data.path);
-	      })
-	      .catch(err => console.error(err));
-	    this.props.recordStatusChange(); //this happens when you start it
+      // options.location = true;
+      // options.totalSeconds = this.props.recordTime * 2;
+      this.camera.capture({metadata: options})
+        .then((data) => {
+          console.log(data)
+          this.props.previousVidChange(data.path);
+        })
+        .catch(err => console.error(err));
+      this.props.recordStatusChange(); //this happens when you start it
     }
   }
 
   stopRecord() {
-  	if(this.camera){
-	  	this.camera.stopCapture();
-	  	this.props.recordStatusChange();
-	  }
+    if(this.camera){
+      this.camera.stopCapture();
+      this.props.recordStatusChange();
+    }
   }
 
   reverseCamera() {
-  	if(this.props.isRecording){
-  		this.stopRecord();
-  	}
-  	this.props.reverseCamera();
+    if(this.props.isRecording){
+      this.stopRecord();
+    }
+    this.props.reverseCamera();
   }
 
   openPhotos() {
-  	// Linking.canOpenURL('photos-redirect://').then(supported => {
-  	// 	if (!supported) {
-   //  		console.log('Can\'t handle url: ' + url);
-  	// 	} else {
-   //  		return Linking.openURL(url);
-  	// 	}
-			// }).catch(err => console.error('An error occurred', err));
+    // Linking.canOpenURL('photos-redirect://').then(supported => {
+    //  if (!supported) {
+   //     console.log('Can\'t handle url: ' + url);
+    //  } else {
+   //     return Linking.openURL(url);
+    //  }
+      // }).catch(err => console.error('An error occurred', err));
   }
 
   saveClip() {
-  	if(this.props.isRecording){
-  		this.stopRecord();
-  		this.startRecord();
-  	}
+    if(this.props.isRecording){
+      this.stopRecord();
+      this.startRecord();
+    }
   }
 
   joinVideos(clip1, clip2) {
-  	RNVideoEditor.merge(
-		  [clip1, clip2],
-		  (results) => {
-		    alert('Error: ' + results);
-		  },
-		  (results, file) => {
-		  	CameraRoll.saveToCameraRoll(file, 'video').then((value) => {
-		  		console.log(value);
-		  		this.props.previousVidChange(value);
-		  		this.deleteFile(clip1);
-		  		this.deleteFile(clip2);
-		  		alert('Success : ' + results + " file: " + file);
-		  	}).catch((e) => {
-		  		console.log(e);
-		  	});
-		  }
-		);
+    RNVideoEditor.merge(
+      [clip1, clip2],
+      (results) => {
+        alert('Error: ' + results);
+      },
+      (results, file) => {
+        CameraRoll.saveToCameraRoll(file, 'video').then((value) => {
+          console.log(value);
+          this.props.previousVidChange(value);
+          this.deleteFile(clip1);
+          this.deleteFile(clip2);
+          alert('Success : ' + results + " file: " + file);
+        }).catch((e) => {
+          console.log(e);
+        });
+      }
+    );
   }
 
   trimVideo(source, startTime, endTime) {
@@ -97,19 +98,19 @@ class MyCamera extends Component {
 
     ProcessingManager.trim(source, options) // like VideoPlayer trim options
           .then((data) => {
-          	console.log(data)//need to see what this data is before I know what to do with next lines
-       //    	CameraRoll.saveToCameraRoll(???, 'video').then((value) => {
-				  	// 	console.log(value);
-				  	// 	this.props.previousVidChange(value);
-				  	// 	this.deleteFile(source);
-				  	// }).catch((e) => {
-				  	// 	console.log(e);
-				  	// });
+            console.log(data)//need to see what this data is before I know what to do with next lines
+       //     CameraRoll.saveToCameraRoll(???, 'video').then((value) => {
+            //  console.log(value);
+            //  this.props.previousVidChange(value);
+            //  this.deleteFile(source);
+            // }).catch((e) => {
+            //  console.log(e);
+            // });
           });
   }
 
   deleteFile(filepath) {
-  	RNFS.exists(filepath)
+    RNFS.exists(filepath)
     .then( (result) => {
         console.log("file exists: ", result);
 
@@ -130,11 +131,51 @@ class MyCamera extends Component {
       });
   }
 
-  render() {
-  	const { isRecording, previousVid, cameraBack, recordTime, updateRecordTime } = this.props;
-  	const cameraDirection = cameraBack ? Camera.constants.Type.back : Camera.constants.Type.front;
+  _renderCameraTrue() {
     return (
-      <View id={1} style={styles.wholeContainer}>
+      <View style={styles.innerContainer}>
+        <View style={styles.buttonContainer}>
+          <View style={{width: 90, height: 90}} />
+          <ControlButton onPressHandler={this.saveClip.bind(this)} imageSource={require('./saveClip.png')} />
+          <ControlButton onPressHandler={this.stopRecord.bind(this)} imageSource={require('./stopRec.png')} />
+        </View>
+      </View>
+    );
+  }
+
+  _renderCameraFalse() {
+    return (
+      <View style={styles.innerContainer}>
+        <View style={styles.timeContainer}>
+          <Text style={styles.recordTime}>
+            {this.props.recordTime}s
+          </Text>
+        </View>
+        <View style={styles.sliderContainer}>
+          <HistoryBar style={styles.slider} updateMethod={this.props.updateRecordTime} recordTime={this.props.recordTime} />
+        </View>
+        <View style={styles.buttonContainer}>
+          <ShowVid previousVid= {this.props.previousVid} showVids= {this.openPhotos.bind(this)} />
+          <ControlButton onPressHandler={this.startRecord.bind(this)} imageSource={require('./record.png')} />
+          <ControlButton onPressHandler={this.reverseCamera.bind(this)} imageSource={require('./reverseCamera.png')} />
+        </View>
+      </View>
+    );
+  }
+
+  _renderCameraBody() {
+    if (this.props.isRecording) {
+      return this._renderCameraTrue();
+    } else {
+      return this._renderCameraFalse();
+    }
+  }
+
+  render() {
+    const { isRecording, previousVid, cameraBack, recordTime, updateRecordTime } = this.props;
+    const cameraDirection = cameraBack ? Camera.constants.Type.back : Camera.constants.Type.front;
+    return (
+      <View style={styles.wholeContainer}>
         <Camera style={{flex: 1}}
           ref={cam => this.camera=cam}
           aspect={Camera.constants.Aspect.fill}
@@ -144,31 +185,8 @@ class MyCamera extends Component {
           type={cameraDirection}
           audio={true}>
 
-          {isRecording ? 
-          	<View id={1} style={styles.innerContainer}>
-	          	<View id={2} style={styles.buttonContainer}>
-	          		<View style={{width: 90, height: 90}} />
-		          	<ControlButton onPressHandler={this.saveClip.bind(this)} imageSource={require('./saveClip.png')} />
-		          	<ControlButton onPressHandler={this.stopRecord.bind(this)} imageSource={require('./stopRec.png')} />
-		          </View>
-		        </View>
-          	:
-          	<View id={3} style={styles.innerContainer}>
-          		<View style={styles.timeContainer}>
-          			<Text style={styles.recordTime}>
-	          			{recordTime}s
-	        			</Text>
-          		</View>
-          		<View id={4} style={styles.sliderContainer}>
-	          		<HistoryBar id={7} style={styles.slider} updateMethod={updateRecordTime} recordTime={recordTime} />
-	          	</View>
-          		<View id={5} style={styles.buttonContainer}>
-          			<ShowVid previousVid= {previousVid} showVids= {this.openPhotos.bind(this)} />
-	          		<ControlButton onPressHandler={this.startRecord.bind(this)} imageSource={require('./record.png')} />
-	          		<ControlButton onPressHandler={this.reverseCamera.bind(this)} imageSource={require('./reverseCamera.png')} />
-	          	</View>
-	          </View>
-          }
+          {this._renderCameraBody()}
+
         </Camera>
       </View>
     );
@@ -176,53 +194,53 @@ class MyCamera extends Component {
 }
 
 const ShowVid = ({previousVid, showVids}) => {
-	if (previousVid) {
-		return (
-			<ControlButton onPressHandler={showVids} imageSource={{uri: previousVid}} />
-		);
-	}
+  if (previousVid) {
+    return (
+      <ControlButton onPressHandler={showVids} imageSource={{uri: previousVid}} />
+    );
+  }
   else {
-		return (
-			<View style={{width: 90, height: 90}} />
-		);
-	}
+    return (
+      <View style={{width: 90, height: 90}} />
+    );
+  }
 };
 
 const ControlButton = ({ onPressHandler, imageSource }) => {
-	return (
-		<TouchableOpacity onPress={onPressHandler}>
+  return (
+    <TouchableOpacity onPress={onPressHandler}>
       <Image
         style={styles.recordButton}
         source={imageSource}
-    	/>
+      />
     </TouchableOpacity>
-	);
+  );
 };
 
 const HistoryBar = ({ style, updateMethod, recordTime }) => {
-	return(
-		<Slider
-			disabled={false}
-			maximumValue={60}
-			minimumValue={5}
-			onValueChange= {(value) => updateMethod(value)}
-			step={5}
-			style={style}
-			value={recordTime} />
-	);
+  return(
+    <Slider
+      disabled={false}
+      maximumValue={60}
+      minimumValue={5}
+      onValueChange= {(value) => updateMethod(value)}
+      step={5}
+      style={style}
+      value={recordTime} />
+  );
 };
 
 const mapStateToProps = (state) => { 
-	return {
-		isRecording: state.cameraState.isRecording, 
-		previousVid: state.cameraState.previousVid,
-		cameraBack: state.cameraState.cameraBack,
-		recordTime: state.cameraState.recordTime,
-	};
+  return {
+    isRecording: state.cameraState.isRecording, 
+    previousVid: state.cameraState.previousVid,
+    cameraBack: state.cameraState.cameraBack,
+    recordTime: state.cameraState.recordTime,
+  };
 };
 
-const mapDispatchToProps = (dispatch) => {	
-	return bindActionCreators(Actions, dispatch);
+const mapDispatchToProps = (dispatch) => {  
+  return bindActionCreators(Actions, dispatch);
 };
 // function mapDispatchToProps(dispatch) { return bindActionCreators(Actions, dispatch); }
 
