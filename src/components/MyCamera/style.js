@@ -1,14 +1,13 @@
-import { StyleSheet, Dimensions } from 'react-native';
-
-const { width, height } = Dimensions.get('window');
+import { StyleSheet } from 'react-native';
 
 const styles = StyleSheet.create({
   wholeContainer: {
     flex: 1,
-    flexDirection: 'row',
   },
   innerContainer: {
     flex: 1,
+    position: 'absolute',
+    bottom: 0,
     flexDirection: 'column',
     justifyContent: 'space-around',
     alignItems: 'center',
@@ -22,7 +21,6 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
     marginBottom: 25,
     // backgroundColor: 'orange',
-    width: width,
   },
   sliderContainer: {
     flex: 4,
@@ -51,7 +49,6 @@ const styles = StyleSheet.create({
   },
   slider: {
     flex:1,
-    height: height * .1,
     // backgroundColor: 'white'
   }
 });

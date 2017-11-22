@@ -1,6 +1,6 @@
 'use strict';
 import React, { Component } from 'react';
-import { TouchableOpacity, View, Image, Slider, Text, Linking } from 'react-native';
+import { TouchableOpacity, View, Image, Slider, Text, Linking, Dimensions } from 'react-native';
 import Camera from 'react-native-camera';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
@@ -8,40 +8,114 @@ import * as Actions from './../../actions';
 import { CameraRoll } from 'react-native';
 import RNVideoEditor from 'react-native-video-editor';
 import { ProcessingManager } from 'react-native-video-processing';
+import Orientation from 'react-native-orientation';
 var RNFS = require('react-native-fs');
 const styles = require('./style');
 
-var previousTempVid;
+var nextVidPath, previousVidPath, clippedVidPath, myTimer, saveClip, restart;
 
 class MyCamera extends Component {
 
   constructor(props) {
     super(props);
-
+    const { width, height } = Dimensions.get('window');
+    const initial = Orientation.getInitialOrientation();
+    this.props.updateOrientation(initial, width, height);
     this.camera = null;
   }
 
-  startRecord() {
-    if (this.camera) {
-      console.log("trying");
-      const options = {};
-      // options.location = true;
-      // options.totalSeconds = this.props.recordTime * 2;
-      this.camera.capture({metadata: options})
-        .then((data) => {
-          console.log(data)
-          this.props.previousVidChange(data.path);
-        })
-        .catch(err => console.error(err));
-      this.props.recordStatusChange(); //this happens when you start it
+  componentDidUpdate() {
+    if (this.props.isRecording) {
+      if (this.props.orientation == 'PORTRAIT'){
+        Orientation.lockToPortrait();
+      }
+      else {
+        Orientation.lockToLandscape();
+      }
     }
+    else {
+      Orientation.unlockAllOrientations();
+    }
+  }
+
+  componentDidMount() {
+    Orientation.addOrientationListener(this._orientationDidChange);
+  }
+
+  componentWillUnmount() {
+    // Remember to remove listener
+    Orientation.removeOrientationListener(this._orientationDidChange);
+  }
+
+  _orientationDidChange = (orientation) => {
+    const { width, height } = Dimensions.get('window');
+    this.props.updateOrientation(orientation, width, height);
+  }
+
+  cameraManager(proceed) {
+    if (proceed){
+      if (this.camera) {
+        const options = {};
+        this.camera.capture({metadata: options})
+          .then((data) => {
+            if (saveClip) {
+              previousVidPath = nextVidPath;
+              nextVidPath = data.path;
+              this.determineClippingAction(nextVidPath);
+              // this.props.previousVidChange(data.path);
+            }
+            else {
+              this.deleteFile(previousVidPath);
+              previousVidPath = nextVidPath;
+              nextVidPath = data.path;
+            }
+
+            if (restart) {
+              this.cameraManager(true);
+            }
+            else{
+              this.stopCleanup();
+            }
+          })
+          .catch(err => console.error(err));
+
+        this.timer();
+      }
+    }
+    else {
+      this.camera.stopCapture();
+    }
+  }
+
+  startRecord() {
+    this.cameraManager(true);
+    this.props.recordStatusChange(true);
   }
 
   stopRecord() {
     if(this.camera){
-      this.camera.stopCapture();
-      this.props.recordStatusChange();
+      restart = false;
+      saveClip = false;
+      clearTimeout(myTimer);
+      this.cameraManager(false);
+      this.props.recordStatusChange(false);
     }
+  }
+
+  stopCleanup() {
+    this.deleteFile(previousVidPath);
+    this.deleteFile(nextVidPath);
+    previousVidPath = null;
+    nextVidPath = null;
+    clippedVidPath = null;
+  }
+
+  timer() {
+    myTimer = setTimeout(() => {
+      saveClip = false;
+      restart = true;
+      this.camera.stopCapture();
+    }, this.props.recordTime * 2 * 1000);
   }
 
   reverseCamera() {
@@ -63,9 +137,43 @@ class MyCamera extends Component {
 
   saveClip() {
     if(this.props.isRecording){
-      this.stopRecord();
-      this.startRecord();
+      saveClip = true;
+      restart = true;
+      clearTimeout(myTimer);
+      this.camera.stopCapture();
     }
+  }
+
+  determineClippingAction(source) {
+    ProcessingManager.getVideoInfo(source)
+      .then(({ duration }) => {
+        console.log("newest clip length: " + duration);
+        const durationEarly = duration - .6;
+        const durationLate = duration + .6;
+        if(duration == 0){
+          console.log("case 1");
+          this.clipVideoLength(this.props.recordTime, this.props.recordTime * 2, previousVidPath, false);
+        }
+        else if(previousVidPath != null && duration < this.props.recordTime) {
+          //clip previous and join with next
+          console.log("case 2");
+          this.clipVideoLength(this.props.recordTime * 2 - durationLate, this.props.recordTime * 2, previousVidPath, true);
+        }
+        else if (duration > this.props.recordTime){
+          //drop previous, cut and save next
+          console.log("case 3");
+          this.clipVideoLength(durationEarly - this.props.recordTime, duration, nextVidPath, false);
+        }
+        else if((previousVidPath == null && duration < this.props.recordTime) || duration == this.props.recordTime) {//will probably need to make some delta comparison due to double
+          //save next
+          console.log("case 4");
+          this.deleteFile(previousVidPath);
+          this.props.previousVidChange(nextVidPath);
+          previousVidPath = null;
+          nextVidPath = null;
+          clippedVidPath = null;
+        }
+      });
   }
 
   joinVideos(clip1, clip2) {
@@ -78,63 +186,80 @@ class MyCamera extends Component {
         CameraRoll.saveToCameraRoll(file, 'video').then((value) => {
           console.log(value);
           this.props.previousVidChange(value);
-          this.deleteFile(clip1);
-          this.deleteFile(clip2);
-          alert('Success : ' + results + " file: " + file);
         }).catch((e) => {
           console.log(e);
         });
+        this.deleteFile(previousVidPath);
+        this.deleteFile(nextVidPath);
+        this.deleteFile(clippedVidPath);  
+        nextVidPath = null;
+        previousVidPath = null;
+        clippedVidPath = null;
       }
     );
   }
 
-  trimVideo(source, startTime, endTime) {
+  clipVideoLength(startTime, endTime, source, join) {
     const options = {
         startTime: startTime,
         endTime: endTime,
-        saveToCameraRoll: true, // default is false // iOS only
-        saveWithCurrentDate: true, // default is false // iOS only
+        // saveToCameraRoll: true, // default is false // iOS only
+        // saveWithCurrentDate: true, // default is false // iOS only
     };
 
     ProcessingManager.trim(source, options) // like VideoPlayer trim options
           .then((data) => {
-            console.log(data)//need to see what this data is before I know what to do with next lines
-       //     CameraRoll.saveToCameraRoll(???, 'video').then((value) => {
-            //  console.log(value);
-            //  this.props.previousVidChange(value);
-            //  this.deleteFile(source);
-            // }).catch((e) => {
-            //  console.log(e);
-            // });
+            clippedVidPath = data;
+            if (join){
+              this.joinVideos(clippedVidPath, nextVidPath);
+            }
+            else{
+              this.deleteFile(previousVidPath);
+              this.deleteFile(nextVidPath);
+              this.props.previousVidChange(clippedVidPath);
+              nextVidPath = null;
+              previousVidPath = null;
+              clippedVidPath = null;
+              // CameraRoll.saveToCameraRoll(data.path, 'video').then((value) => {
+              //  console.log(value);
+              // }).catch((e) => {
+              //  console.log(e);
+              // });
+            }
+          })
+          .catch((err) => {
+            console.log(err.message);
           });
   }
 
   deleteFile(filepath) {
-    RNFS.exists(filepath)
-    .then( (result) => {
-        console.log("file exists: ", result);
+    if (filepath != null) {
+      RNFS.exists(filepath)
+      .then( (result) => {
+          console.log("file exists: ", result);
 
-        if(result){
-          return RNFS.unlink(filepath)
-            .then(() => {
-              console.log('FILE DELETED');
-            })
-            // `unlink` will throw an error, if the item to unlink does not exist
-            .catch((err) => {
-              console.log(err.message);
-            });
-        }
+          if(result){
+            return RNFS.unlink(filepath)
+              .then(() => {
+                console.log('FILE DELETED');
+              })
+              // `unlink` will throw an error, if the item to unlink does not exist
+              .catch((err) => {
+                console.log(err.message);
+              });
+          }
 
-      })
-      .catch((err) => {
-        console.log(err.message);
-      });
+        })
+        .catch((err) => {
+          console.log(err.message);
+        });
+      }
   }
 
   _renderCameraTrue() {
     return (
       <View style={styles.innerContainer}>
-        <View style={styles.buttonContainer}>
+        <View style={[styles.buttonContainer, {width:this.props.width}]}>
           <View style={{width: 90, height: 90}} />
           <ControlButton onPressHandler={this.saveClip.bind(this)} imageSource={require('./saveClip.png')} />
           <ControlButton onPressHandler={this.stopRecord.bind(this)} imageSource={require('./stopRec.png')} />
@@ -152,9 +277,9 @@ class MyCamera extends Component {
           </Text>
         </View>
         <View style={styles.sliderContainer}>
-          <HistoryBar style={styles.slider} updateMethod={this.props.updateRecordTime} recordTime={this.props.recordTime} />
+          <HistoryBar style={styles.slider} height={this.props.height * .1} updateMethod={this.props.updateRecordTime} recordTime={this.props.recordTime} />
         </View>
-        <View style={styles.buttonContainer}>
+        <View style={[styles.buttonContainer, {width:this.props.width}]}>
           <ShowVid previousVid= {this.props.previousVid} showVids= {this.openPhotos.bind(this)} />
           <ControlButton onPressHandler={this.startRecord.bind(this)} imageSource={require('./record.png')} />
           <ControlButton onPressHandler={this.reverseCamera.bind(this)} imageSource={require('./reverseCamera.png')} />
@@ -172,7 +297,7 @@ class MyCamera extends Component {
   }
 
   render() {
-    const { isRecording, previousVid, cameraBack, recordTime, updateRecordTime } = this.props;
+    const { isRecording, previousVid, cameraBack, recordTime, updateRecordTime, orientation } = this.props;
     const cameraDirection = cameraBack ? Camera.constants.Type.back : Camera.constants.Type.front;
     return (
       <View style={styles.wholeContainer}>
@@ -180,14 +305,14 @@ class MyCamera extends Component {
           ref={cam => this.camera=cam}
           aspect={Camera.constants.Aspect.fill}
           captureMode={Camera.constants.CaptureMode.video}
+          // captureQuality={Camera.constants.CaptureQuality["1080p"]}
           // captureTarget={Camera.constants.CaptureTarget.disk}
           keepAwake={true}
           type={cameraDirection}
-          audio={true}>
-
-          {this._renderCameraBody()}
-
-        </Camera>
+          audio={true} />
+      <View>
+        {this._renderCameraBody()}
+      </View>
       </View>
     );
   }
@@ -217,7 +342,7 @@ const ControlButton = ({ onPressHandler, imageSource }) => {
   );
 };
 
-const HistoryBar = ({ style, updateMethod, recordTime }) => {
+const HistoryBar = ({ style, updateMethod, recordTime, height }) => {
   return(
     <Slider
       disabled={false}
@@ -225,7 +350,7 @@ const HistoryBar = ({ style, updateMethod, recordTime }) => {
       minimumValue={5}
       onValueChange= {(value) => updateMethod(value)}
       step={5}
-      style={style}
+      style={[style, {height:height}]}
       value={recordTime} />
   );
 };
@@ -236,6 +361,9 @@ const mapStateToProps = (state) => {
     previousVid: state.cameraState.previousVid,
     cameraBack: state.cameraState.cameraBack,
     recordTime: state.cameraState.recordTime,
+    orientation: state.cameraState.orientation,
+    width: state.cameraState.width,
+    height: state.cameraState.height,
   };
 };
 

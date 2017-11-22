@@ -1,6 +1,6 @@
-import {RECORD_STATUS, PREVIOUS_VID, CAMERA_SIDE, RECORD_TIME} from '../actions/';
+import {RECORD_STATUS, PREVIOUS_VID, CAMERA_SIDE, RECORD_TIME, ORIENTATION} from '../actions/';
 
-let initialState = { isRecording : false, previousVid: null, cameraBack: true, recordTime: 15 };
+let initialState = { isRecording: false, previousVid: null, cameraBack: true, recordTime: 15, orientation: 'PORTRAIT', width: null, height: null };
 
 let cloneObject = function(obj){
 	return JSON.parse(JSON.stringify(obj))
@@ -11,7 +11,9 @@ export default (state = initialState, action) => {
 		
 		case RECORD_STATUS:
 			newState = cloneObject(state);
-			newState.isRecording = !newState.isRecording;
+			if (action.isRecording != null){
+				newState.isRecording = action.isRecording;
+			}
 			return newState;
 		
 		case PREVIOUS_VID:
@@ -35,6 +37,23 @@ export default (state = initialState, action) => {
 				newState.recordTime = action.recordTime;
 			}
 			return newState;
+
+		case ORIENTATION:
+			newState = cloneObject(state);
+			if (action.orientation){
+				newState.orientation = action.orientation;
+			}
+
+			if (action.width){
+				newState.width = action.width;
+			}
+
+			if (action.height){
+				newState.height = action.height;
+			}
+
+			return newState;
+			
 		default:
 			return state;
 	}
