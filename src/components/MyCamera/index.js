@@ -9,7 +9,9 @@ import { CameraRoll } from 'react-native';
 import RNVideoEditor from 'react-native-video-editor';
 import { ProcessingManager } from 'react-native-video-processing';
 import Orientation from 'react-native-orientation';
+import KeepAwake from 'react-native-keep-awake';
 var RNFS = require('react-native-fs');
+
 const styles = require('./style');
 
 var nextVidPath, previousVidPath, clippedVidPath, myTimer, saveClip, restart;
@@ -59,10 +61,10 @@ class MyCamera extends Component {
         this.camera.capture({metadata: options})
           .then((data) => {
             if (saveClip) {
+              this.deleteFile(previousVidPath);
               previousVidPath = nextVidPath;
               nextVidPath = data.path;
-              this.determineClippingAction(nextVidPath);
-              // this.props.previousVidChange(data.path);
+              this.determineClippingAction(previousVidPath, nextVidPath);
             }
             else {
               this.deleteFile(previousVidPath);
@@ -144,47 +146,42 @@ class MyCamera extends Component {
     }
   }
 
-  determineClippingAction(source) {
-    ProcessingManager.getVideoInfo(source)
+  determineClippingAction(previousVidPath, nextVidPath) {
+    ProcessingManager.getVideoInfo(nextVidPath)
       .then(({ duration }) => {
-        console.log("newest clip length: " + duration);
         const durationEarly = duration - .6;
         const durationLate = duration + .6;
         if(duration == 0){
           console.log("case 1");
-          this.clipVideoLength(this.props.recordTime, this.props.recordTime * 2, previousVidPath, false);
+          this.clipVideoLength(this.props.recordTime, this.props.recordTime * 2, previousVidPath, false, previousVidPath, nextVidPath);
         }
         else if(previousVidPath != null && duration < this.props.recordTime) {
           //clip previous and join with next
           console.log("case 2");
-          this.clipVideoLength(this.props.recordTime * 2 - durationLate, this.props.recordTime * 2, previousVidPath, true);
+          this.clipVideoLength(this.props.recordTime * 2 - durationLate, this.props.recordTime * 2, previousVidPath, true, previousVidPath, nextVidPath);
         }
         else if (duration > this.props.recordTime){
           //drop previous, cut and save next
           console.log("case 3");
-          this.clipVideoLength(durationEarly - this.props.recordTime, duration, nextVidPath, false);
+          this.clipVideoLength(durationEarly - this.props.recordTime, duration, nextVidPath, false, previousVidPath, nextVidPath);
         }
         else if((previousVidPath == null && duration < this.props.recordTime) || duration == this.props.recordTime) {//will probably need to make some delta comparison due to double
           //save next
           console.log("case 4");
           this.deleteFile(previousVidPath);
           this.props.previousVidChange(nextVidPath);
-          previousVidPath = null;
-          nextVidPath = null;
-          clippedVidPath = null;
         }
       });
   }
 
-  joinVideos(clip1, clip2) {
+  joinVideos(clippedVidPath, previousVidPath, nextVidPath) {
     RNVideoEditor.merge(
-      [clip1, clip2],
+      [clippedVidPath, nextVidPath],
       (results) => {
         alert('Error: ' + results);
       },
       (results, file) => {
         CameraRoll.saveToCameraRoll(file, 'video').then((value) => {
-          console.log(value);
           this.props.previousVidChange(value);
         }).catch((e) => {
           console.log(e);
@@ -192,14 +189,11 @@ class MyCamera extends Component {
         this.deleteFile(previousVidPath);
         this.deleteFile(nextVidPath);
         this.deleteFile(clippedVidPath);  
-        nextVidPath = null;
-        previousVidPath = null;
-        clippedVidPath = null;
       }
     );
   }
 
-  clipVideoLength(startTime, endTime, source, join) {
+  clipVideoLength(startTime, endTime, source, join, previousVidPath, nextVidPath) {
     const options = {
         startTime: startTime,
         endTime: endTime,
@@ -211,15 +205,12 @@ class MyCamera extends Component {
           .then((data) => {
             clippedVidPath = data;
             if (join){
-              this.joinVideos(clippedVidPath, nextVidPath);
+              this.joinVideos(clippedVidPath, previousVidPath, nextVidPath);
             }
             else{
               this.deleteFile(previousVidPath);
               this.deleteFile(nextVidPath);
               this.props.previousVidChange(clippedVidPath);
-              nextVidPath = null;
-              previousVidPath = null;
-              clippedVidPath = null;
               // CameraRoll.saveToCameraRoll(data.path, 'video').then((value) => {
               //  console.log(value);
               // }).catch((e) => {
@@ -236,12 +227,11 @@ class MyCamera extends Component {
     if (filepath != null) {
       RNFS.exists(filepath)
       .then( (result) => {
-          console.log("file exists: ", result);
 
           if(result){
             return RNFS.unlink(filepath)
               .then(() => {
-                console.log('FILE DELETED');
+                // console.log('FILE DELETED: ' + filepath);
               })
               // `unlink` will throw an error, if the item to unlink does not exist
               .catch((err) => {
@@ -263,6 +253,7 @@ class MyCamera extends Component {
           <View style={{width: 90, height: 90}} />
           <ControlButton onPressHandler={this.saveClip.bind(this)} imageSource={require('./saveClip.png')} />
           <ControlButton onPressHandler={this.stopRecord.bind(this)} imageSource={require('./stopRec.png')} />
+          <KeepAwake />
         </View>
       </View>
     );
