@@ -3,6 +3,7 @@ package com.highlightreel;
 import android.app.Application;
 
 import com.facebook.react.ReactApplication;
+import com.fileopener.FileOpenerPackage;
 import com.corbt.keepawake.KCKeepAwakePackage;
 import com.github.yamill.orientation.OrientationPackage;
 import com.rnfs.RNFSPackage;
@@ -29,6 +30,7 @@ public class MainApplication extends Application implements ReactApplication {
     protected List<ReactPackage> getPackages() {
       return Arrays.<ReactPackage>asList(
           new MainReactPackage(),
+            new FileOpenerPackage(),
             new KCKeepAwakePackage(),
             new OrientationPackage(),
             new RNFSPackage(),
