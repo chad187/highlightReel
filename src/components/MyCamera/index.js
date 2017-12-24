@@ -17,7 +17,7 @@ var RNFS = require('react-native-fs');
 
 const styles = require('./style');
 
-var nextVidPath = null, previousVidPath = null, clippedVidPath, myTimer, saveClip, restart, betweenStopAndStart;
+var nextVidPath = null, previousVidPath = null, myTimer, saveClip, restart, betweenStopAndStart;
 
 class MyCamera extends Component {
 
@@ -52,6 +52,7 @@ class MyCamera extends Component {
     // Remember to remove listener
     AppState.removeEventListener('change', this._handleAppStateChange);
     Orientation.removeOrientationListener(this._orientationDidChange);
+    clearTimeout(myTimer);
   }
 
   _orientationDidChange = (orientation) => {
@@ -132,20 +133,24 @@ class MyCamera extends Component {
 
   stopRecord() {
     if(this.camera){
-      restart = false;
-      saveClip = false;
-      clearTimeout(myTimer);
-      this.cameraManager(false);
-      this.props.recordStatusChange(false);
+      setTimeout(() => {
+        restart = false;
+        saveClip = false;
+        clearTimeout(myTimer);
+        this.cameraManager(false);
+        this.props.recordStatusChange(false);
+      },1);
     }
   }
 
   stopCleanup() {
+    console.log("deleting previousVidPath: " + previousVidPath);
     this.deleteFile(previousVidPath);
+    console.log("deleting nextVidPath: " + nextVidPath);
     this.deleteFile(nextVidPath);
     previousVidPath = null;
     nextVidPath = null;
-    clippedVidPath = null;
+    clearTimeout(myTimer);
   }
 
   timer() {
@@ -186,35 +191,37 @@ class MyCamera extends Component {
     else {
       console.log('missed the camera trying again');
       setTimeout(() => {
-      this.saveClip();
-    }, 200);
+        this.saveClip();
+      }, 200);
     }
   }
 
-  determineClippingAction(previousVidPath, nextVidPath) {
-    ProcessingManager.getVideoInfo(nextVidPath)
+  determineClippingAction(previousVid, nextVid) {
+    setTimeout(() => {
+      ProcessingManager.getVideoInfo(nextVid)
       .then(({ duration }) => {
-        const durationEarly = duration - .6;
-        const durationLate = duration + .6;
+        const durationEarly = duration - .7;
+        const durationLate = duration + .7;
 
-        if(duration == 0 && previousVidPath != null){
+        if(duration == 0 && previousVid != null){
           console.log("case 1: new vid duraction = 0");
-          this.clipVideoLength(this.props.recordTime, this.props.recordTime * 2, previousVidPath, false, previousVidPath, nextVidPath);
+          this.clipVideoLength(this.props.recordTime, this.props.recordTime * 2, previousVid, false, previousVid, nextVid);
         }
-        else if(previousVidPath != null && duration < this.props.recordTime) {
+        else if(previousVid != null && duration < this.props.recordTime) {
           //clip previous and join with next
           console.log("case 2: new vid duration is less than record time");
-          this.clipVideoLength(this.props.recordTime * 2 - durationLate, this.props.recordTime * 2, previousVidPath, true, previousVidPath, nextVidPath);
+          this.clipVideoLength(this.props.recordTime * 2 - durationLate, this.props.recordTime * 2, previousVid, true, previousVid, nextVid);
         }
         else if (duration > this.props.recordTime){
           //drop previous, cut and save next
           console.log("case 3: new vid duration is greater than record time");
-          this.clipVideoLength(durationEarly - this.props.recordTime, duration, nextVidPath, false, previousVidPath, nextVidPath);
+          this.clipVideoLength(durationEarly - this.props.recordTime, duration, nextVid, false, previousVid, nextVid);
         }
-        else if((previousVidPath == null && duration < this.props.recordTime) || duration == this.props.recordTime) {//will probably need to make some delta comparison due to double
+        else if((previousVid == null && duration < this.props.recordTime) || duration == this.props.recordTime) {//will probably need to make some delta comparison due to double
           //save next
           console.log("case 4: no previous vid and duration is less than record time");
-           CameraRoll.saveToCameraRoll(nextVidPath, 'video').then((value) => {
+           CameraRoll.saveToCameraRoll(nextVid, 'video').then((value) => {
+              this.deleteFile(nextVid);
               this.props.previousVidChange(value);
               this.toast();
             }).catch((e) => {
@@ -222,52 +229,54 @@ class MyCamera extends Component {
             });
         }
       });
+    }, 1);
   }
 
-  joinVideos(clippedVidPath, previousVidPath, nextVidPath) {
+  joinVideos(clippedVidPath, previousVid, nextVid) {
     RNVideoEditor.merge(
-      [clippedVidPath, nextVidPath],
+      [clippedVidPath, nextVid],
       (results) => {
         alert('Error: ' + results);
       },
       (results, file) => {
-        this.props.previousVidChange(file);
-        this.toast();
         CameraRoll.saveToCameraRoll(file, 'video').then((value) => {
+          this.props.previousVidChange(value);
+          this.deleteFile(file);
+          this.toast();
         }).catch((e) => {
           console.log(e);
         });
-        this.deleteFile(previousVidPath);
-        this.deleteFile(nextVidPath);
+        this.deleteFile(previousVid);
+        this.deleteFile(nextVid);
         this.deleteFile(clippedVidPath);  
       }
     );
   }
 
-  clipVideoLength(startTime, endTime, source, join, previousVidPath, nextVidPath) {
+  clipVideoLength(startTime, endTime, source, join, previousVid, nextVid) {
     const options = {
         startTime: startTime,
         endTime: endTime,
-        // saveToCameraRoll: true, // default is false // iOS only
-        // saveWithCurrentDate: true, // default is false // iOS only
     };
 
     ProcessingManager.trim(source, options) // like VideoPlayer trim options
           .then((data) => {
-            clippedVidPath = data;
             if (join){
-              this.joinVideos(clippedVidPath, previousVidPath, nextVidPath);
+              this.joinVideos(data, previousVid, nextVid);
             }
             else{
-              this.deleteFile(previousVidPath);
-              this.deleteFile(nextVidPath);
-              this.props.previousVidChange(clippedVidPath);
-              this.toast();
-              // CameraRoll.saveToCameraRoll(data.path, 'video').then((value) => {
-              //  console.log(value);
-              // }).catch((e) => {
-              //  console.log(e);
-              // });
+              CameraRoll.saveToCameraRoll(data, 'video').then((value) => {
+                console.log("deleting data: " + data);
+                this.deleteFile(data);
+                this.props.previousVidChange(value);
+                this.toast();
+              }).catch((e) => {
+               console.log(e);
+              });
+              console.log("deleting previousVid: " + previousVid);
+              this.deleteFile(previousVid);
+              console.log("deleting nextVid: " + nextVid);
+              this.deleteFile(nextVid);
             }
           })
           .catch((err) => {
@@ -349,7 +358,7 @@ class MyCamera extends Component {
           aspect={Camera.constants.Aspect.fill}
           captureMode={Camera.constants.CaptureMode.video}
           // captureQuality={Camera.constants.CaptureQuality["1080p"]}
-          // captureTarget={Camera.constants.CaptureTarget.disk}
+          captureTarget={Camera.constants.CaptureTarget.disk}
           keepAwake={true}
           type={cameraDirection}
           audio={true} />
@@ -362,18 +371,29 @@ class MyCamera extends Component {
 }
 
 const ShowVid = ({previousVid, showVids}) => {
-  const vidFile = "file:///" + previousVid
-  console.log("show this vid: " + vidFile);
-  if (previousVid) {
-    return (
-      <ControlButton onPressHandler={showVids} imageSource={{uri: vidFile}} />
-    );
-  }
-  else {
-    return (
-      <View style={{width: 90, height: 90}} />
-    );
-  }
+  let vidFile = null;
+    if (previousVid) {
+      if (previousVid.charAt(0) === 'f' || previousVid.charAt(0) === 'c') {
+        // if (previousVid.charAt(0) === 'c') {
+        //   previousVid = previousVid.replace("content://media/", "file:///");//I have a feeling that this will be android only solution
+        // }
+        vidFile = previousVid;
+      }
+      else {
+        vidFile = "file:///" + previousVid;
+      }
+
+      console.log("show this vid: " + vidFile);
+      return (
+        <ControlButton onPressHandler={showVids} imageSource={{uri: vidFile}} />
+      );
+    }
+  
+    else {
+      return (
+        <View style={{width: 90, height: 90}} />
+      );
+    }
 };
 
 const ControlButton = ({ onPressHandler, imageSource }) => {

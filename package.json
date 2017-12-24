@@ -10,11 +10,9 @@
 		"test": "node node_modules/jest/bin/jest.js --watch"
 	},
 	"dependencies": {
-		"expo": "^22.0.0",
-		"jest-expo": "^22.0.0",
 		"react": "16.0.0",
-		"react-native": "0.50.4",
-		"react-native-camera": "^0.10.0",
+		"react-native": "0.51.0",
+		"react-native-camera": "^0.12.0",
 		"react-native-file-opener": "^0.2.0",
 		"react-native-fs": "^2.8.3",
 		"react-native-keep-awake": "^2.0.6",
