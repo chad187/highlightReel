@@ -1,7 +1,6 @@
 //index.android.js
 import React, { Component } from 'react';
 import {AppRegistry, Text, View} from 'react-native';
-import Login from'./src/components/Login';
 import MyCamera from'./src/components/MyCamera';
 import cameraReducers from './src/reducers/camera';
 import { createStore, combineReducers } from 'redux';

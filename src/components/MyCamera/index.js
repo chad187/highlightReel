@@ -159,7 +159,7 @@ class MyCamera extends Component {
       restart = true;
       this.camera.stopCapture();
       betweenStopAndStart = true;
-    }, this.props.recordTime * 2 * 1000);
+    }, this.props.recordTime * 2.2 * 1000);
   }
 
   reverseCamera() {
@@ -171,8 +171,9 @@ class MyCamera extends Component {
 
   openPhotos() {
     const FileMimeType = "video/mp4"; // mime type of the file
+    const file = this.props.previousVid.replace("file://", "");
     FileOpener.open(
-        this.props.previousVid,
+        file,
         FileMimeType
     ).then((msg) => {
         console.log('success!!')
@@ -200,17 +201,17 @@ class MyCamera extends Component {
     setTimeout(() => {
       ProcessingManager.getVideoInfo(nextVid)
       .then(({ duration }) => {
-        const durationEarly = duration - .7;
+        const durationEarly = duration - 1;
         const durationLate = duration + .7;
 
-        if(duration == 0 && previousVid != null){
+        if(durationLate <= 1 && previousVid != null){
           console.log("case 1: new vid duraction = 0");
-          this.clipVideoLength(this.props.recordTime, this.props.recordTime * 2, previousVid, false, previousVid, nextVid);
+          this.clipVideoLength(this.props.recordTime - 1.5, (this.props.recordTime * 2.2), previousVid, false, previousVid, nextVid);
         }
         else if(previousVid != null && duration < this.props.recordTime) {
           //clip previous and join with next
           console.log("case 2: new vid duration is less than record time");
-          this.clipVideoLength(this.props.recordTime * 2 - durationLate, this.props.recordTime * 2, previousVid, true, previousVid, nextVid);
+          this.clipVideoLength(this.props.recordTime * 2.1 - durationLate, this.props.recordTime * 2.3, previousVid, true, previousVid, nextVid);
         }
         else if (duration > this.props.recordTime){
           //drop previous, cut and save next
@@ -221,8 +222,8 @@ class MyCamera extends Component {
           //save next
           console.log("case 4: no previous vid and duration is less than record time");
            CameraRoll.saveToCameraRoll(nextVid, 'video').then((value) => {
+              this.props.previousVidChange(this.getFileUri(nextVid.replace("file://", "")));
               this.deleteFile(nextVid);
-              this.props.previousVidChange(value);
               this.toast();
             }).catch((e) => {
               console.log(e);
@@ -230,6 +231,15 @@ class MyCamera extends Component {
         }
       });
     }, 1);
+  }
+
+  getFileUri(videoPathTemp) {
+    if (videoPathTemp.indexOf(RNFS.ExternalStorageDirectoryPath) == -1) {
+      const position = videoPathTemp.lastIndexOf("/");
+      const fileName = videoPathTemp.slice(position, videoPathTemp.length);
+      return "file://" + RNFS.ExternalStorageDirectoryPath + "/DCIM" + fileName;
+    }
+    return "file://" + videoPathTemp.replace("Movies", "DCIM");//I have a feeling that this will be android only solution
   }
 
   joinVideos(clippedVidPath, previousVid, nextVid) {
@@ -240,7 +250,7 @@ class MyCamera extends Component {
       },
       (results, file) => {
         CameraRoll.saveToCameraRoll(file, 'video').then((value) => {
-          this.props.previousVidChange(value);
+          this.props.previousVidChange(this.getFileUri(file));
           this.deleteFile(file);
           this.toast();
         }).catch((e) => {
@@ -267,8 +277,8 @@ class MyCamera extends Component {
             else{
               CameraRoll.saveToCameraRoll(data, 'video').then((value) => {
                 console.log("deleting data: " + data);
+                this.props.previousVidChange(this.getFileUri(data));
                 this.deleteFile(data);
-                this.props.previousVidChange(value);
                 this.toast();
               }).catch((e) => {
                console.log(e);
@@ -371,21 +381,10 @@ class MyCamera extends Component {
 }
 
 const ShowVid = ({previousVid, showVids}) => {
-  let vidFile = null;
     if (previousVid) {
-      if (previousVid.charAt(0) === 'f' || previousVid.charAt(0) === 'c') {
-        // if (previousVid.charAt(0) === 'c') {
-        //   previousVid = previousVid.replace("content://media/", "file:///");//I have a feeling that this will be android only solution
-        // }
-        vidFile = previousVid;
-      }
-      else {
-        vidFile = "file:///" + previousVid;
-      }
-
-      console.log("show this vid: " + vidFile);
+      console.log("show this vid: " + previousVid);
       return (
-        <ControlButton onPressHandler={showVids} imageSource={{uri: vidFile}} />
+        <ControlButton onPressHandler={showVids} imageSource={{uri: previousVid}} />
       );
     }
   
