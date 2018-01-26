@@ -10,6 +10,7 @@ import { ProcessingManager } from 'react-native-video-processing';
 import Orientation from 'react-native-orientation';
 import KeepAwake from 'react-native-keep-awake';
 import Toast from 'react-native-root-toast';
+import RNExitApp from 'react-native-exit-app';
 
 const FileOpener = require('react-native-file-opener');
 
@@ -50,9 +51,7 @@ class MyCamera extends Component {
 
   componentWillUnmount() {
     // Remember to remove listener
-    AppState.removeEventListener('change', this._handleAppStateChange);
-    Orientation.removeOrientationListener(this._orientationDidChange);
-    clearTimeout(myTimer);
+    RNExitApp.exitApp();//I don't know if this is necessary and if it is not I need to remove it from everywhere
   }
 
   _orientationDidChange = (orientation) => {
@@ -62,8 +61,18 @@ class MyCamera extends Component {
 
   _handleAppStateChange = (nextAppState) => {
     if ( nextAppState === 'background') {
-      console.log('App has went to the background!')
+      AppState.removeEventListener('change', this._handleAppStateChange);
+      Orientation.removeOrientationListener(this._orientationDidChange);
+      clearTimeout(myTimer);
       this.stopRecord();
+      this.props.previewChange(false);
+      //I might need to exit the app here as well but that will be ugly
+    }
+
+    if (nextAppState === 'active') {
+      AppState.addEventListener('change', this._handleAppStateChange);
+      Orientation.addOrientationListener(this._orientationDidChange);
+      this.props.previewChange(true);
     }
   }
 
@@ -206,12 +215,12 @@ class MyCamera extends Component {
 
         if(durationLate <= 1 && previousVid != null){
           console.log("case 1: new vid duraction = 0");
-          this.clipVideoLength(this.props.recordTime - 1.5, (this.props.recordTime * 2.2), previousVid, false, previousVid, nextVid);
+          this.clipVideoLength(this.props.recordTime, (this.props.recordTime * 2.2), previousVid, false, previousVid, nextVid);
         }
         else if(previousVid != null && duration < this.props.recordTime) {
           //clip previous and join with next
           console.log("case 2: new vid duration is less than record time");
-          this.clipVideoLength(this.props.recordTime * 2.1 - durationLate, this.props.recordTime * 2.3, previousVid, true, previousVid, nextVid);
+          this.clipVideoLength(this.props.recordTime + duration * 1.5, this.props.recordTime * 2.2, previousVid, true, previousVid, nextVid);
         }
         else if (duration > this.props.recordTime){
           //drop previous, cut and save next
@@ -230,7 +239,7 @@ class MyCamera extends Component {
             });
         }
       });
-    }, 1);
+    }, 1000);
   }
 
   getFileUri(videoPathTemp) {
@@ -243,6 +252,16 @@ class MyCamera extends Component {
   }
 
   joinVideos(clippedVidPath, previousVid, nextVid) {
+    // ProcessingManager.getVideoInfo(nextVid)
+    //   .then(({ duration }) => {
+    //     console.log("nextvid length: " + duration);
+    //   });
+
+    // ProcessingManager.getVideoInfo(clippedVidPath)
+    //   .then(({ duration }) => {
+    //     console.log("clippedVid length: " + duration);
+    //   });
+
     RNVideoEditor.merge(
       [clippedVidPath, nextVid],
       (results) => {
@@ -268,6 +287,13 @@ class MyCamera extends Component {
         startTime: startTime,
         endTime: endTime,
     };
+
+    // ProcessingManager.getVideoInfo(source)
+    //   .then(({ duration }) => {
+    //     console.log("source length: " + duration);
+    //     console.log("startTime: " + startTime);
+    //     console.log("endTime: " + endTime);
+    //   });
 
     ProcessingManager.trim(source, options) // like VideoPlayer trim options
           .then((data) => {
@@ -358,11 +384,9 @@ class MyCamera extends Component {
     }
   }
 
-  render() {
-    const { isRecording, previousVid, cameraBack, recordTime, updateRecordTime, orientation } = this.props;
-    const cameraDirection = cameraBack ? Camera.constants.Type.back : Camera.constants.Type.front;
-    return (
-      <View style={styles.wholeContainer}>
+  _previewCamera(cameraDirection) {
+    if (this.props.isPreviewing) {
+      return (
         <Camera style={{flex: 1}}
           ref={cam => this.camera=cam}
           aspect={Camera.constants.Aspect.fill}
@@ -372,6 +396,19 @@ class MyCamera extends Component {
           keepAwake={true}
           type={cameraDirection}
           audio={true} />
+      );
+    }
+    else {
+      return null;
+    }
+  }
+
+  render() {
+    const { isRecording, previousVid, cameraBack, recordTime, updateRecordTime, orientation } = this.props;
+    const cameraDirection = cameraBack ? Camera.constants.Type.back : Camera.constants.Type.front;
+    return (
+      <View style={styles.wholeContainer}>
+        {this._previewCamera(cameraDirection)}
       <View>
         {this._renderCameraBody()}
       </View>
@@ -428,6 +465,7 @@ const mapStateToProps = (state) => {
     orientation: state.cameraState.orientation,
     width: state.cameraState.width,
     height: state.cameraState.height,
+    isPreviewing: state.cameraState.isPreviewing,
   };
 };
 

@@ -43,6 +43,7 @@
 		224E8F93C4D54530B9950EB3 /* libRCTOrientation.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3E11575E40614A6BB70A8855 /* libRCTOrientation.a */; };
 		8DA38B695E9F4BBC969D08BA /* libKCKeepAwake.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 195F163EF3BA4449B9C1B703 /* libKCKeepAwake.a */; };
 		43B3BF80DFD243ACBC2E450D /* libRNFileOpener.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 0E1B043F813C436D82B84B89 /* libRNFileOpener.a */; };
+		13774AB8554D46C7913D3939 /* libRNExitApp.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 8414D33341E7403EAE260860 /* libRNExitApp.a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -284,6 +285,8 @@
 		195F163EF3BA4449B9C1B703 /* libKCKeepAwake.a */ = {isa = PBXFileReference; name = "libKCKeepAwake.a"; path = "libKCKeepAwake.a"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = archive.ar; explicitFileType = undefined; includeInIndex = 0; };
 		53683CE95C8F40219C721E3B /* RNFileOpener.xcodeproj */ = {isa = PBXFileReference; name = "RNFileOpener.xcodeproj"; path = "../node_modules/react-native-file-opener/ios/RNFileOpener.xcodeproj"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = wrapper.pb-project; explicitFileType = undefined; includeInIndex = 0; };
 		0E1B043F813C436D82B84B89 /* libRNFileOpener.a */ = {isa = PBXFileReference; name = "libRNFileOpener.a"; path = "libRNFileOpener.a"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = archive.ar; explicitFileType = undefined; includeInIndex = 0; };
+		D31BCEFEC9A142F7B8132D5B /* RNExitApp.xcodeproj */ = {isa = PBXFileReference; name = "RNExitApp.xcodeproj"; path = "../node_modules/react-native-exit-app/ios/RNExitApp.xcodeproj"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = wrapper.pb-project; explicitFileType = undefined; includeInIndex = 0; };
+		8414D33341E7403EAE260860 /* libRNExitApp.a */ = {isa = PBXFileReference; name = "libRNExitApp.a"; path = "libRNExitApp.a"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = archive.ar; explicitFileType = undefined; includeInIndex = 0; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -319,6 +322,7 @@
 				224E8F93C4D54530B9950EB3 /* libRCTOrientation.a in Frameworks */,
 				8DA38B695E9F4BBC969D08BA /* libKCKeepAwake.a in Frameworks */,
 				43B3BF80DFD243ACBC2E450D /* libRNFileOpener.a in Frameworks */,
+				13774AB8554D46C7913D3939 /* libRNExitApp.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -494,6 +498,7 @@
 				543D423C59FD4C5489CFCEBD /* RCTOrientation.xcodeproj */,
 				467AA6E8E39A40D08FAD035E /* KCKeepAwake.xcodeproj */,
 				53683CE95C8F40219C721E3B /* RNFileOpener.xcodeproj */,
+				D31BCEFEC9A142F7B8132D5B /* RNExitApp.xcodeproj */,
 			);
 			name = Libraries;
 			sourceTree = "<group>";
@@ -1041,6 +1046,7 @@
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/HighlightReel.app/HighlightReel";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
+					"\"$(SRCROOT)/$(TARGET_NAME)\"",
 				);
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
@@ -1071,6 +1077,7 @@
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/HighlightReel.app/HighlightReel";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
+					"\"$(SRCROOT)/$(TARGET_NAME)\"",
 				);
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
@@ -1165,6 +1172,7 @@
 				TVOS_DEPLOYMENT_TARGET = 9.2;
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
+					"\"$(SRCROOT)/$(TARGET_NAME)\"",
 				);
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
@@ -1204,6 +1212,7 @@
 				TVOS_DEPLOYMENT_TARGET = 9.2;
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
+					"\"$(SRCROOT)/$(TARGET_NAME)\"",
 				);
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
@@ -1238,6 +1247,7 @@
 				TVOS_DEPLOYMENT_TARGET = 10.1;
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
+					"\"$(SRCROOT)/$(TARGET_NAME)\"",
 				);
 			};
 			name = Debug;
@@ -1262,6 +1272,7 @@
 				TVOS_DEPLOYMENT_TARGET = 10.1;
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
+					"\"$(SRCROOT)/$(TARGET_NAME)\"",
 				);
 			};
 			name = Release;

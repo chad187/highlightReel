@@ -1,5 +1,6 @@
 
 export const RECORD_STATUS = 'camera/RECORD_STATUS';
+export const PREVIEW_STATUS = 'camera/PREVIEW_STATUS';
 export const PREVIOUS_VID = 'camera/PREVIOUS_VID';
 export const CAMERA_SIDE = 'camera/CAMERA_SIDE';
 export const RECORD_TIME = 'camera/RECORD_TIME';
@@ -38,5 +39,12 @@ export const updateOrientation = (orientation = 'PORTRAIT', width, height) => {
 		orientation: orientation,
 		width: width,
 		height: height,
+	}
+}
+
+export const previewChange = (isPreviewing) => {
+	return {
+		type: PREVIEW_STATUS,
+		isPreviewing: isPreviewing,
 	}
 }
