@@ -10,7 +10,6 @@ import { ProcessingManager } from 'react-native-video-processing';
 import Orientation from 'react-native-orientation';
 import KeepAwake from 'react-native-keep-awake';
 import Toast from 'react-native-root-toast';
-import RNExitApp from 'react-native-exit-app';
 
 const FileOpener = require('react-native-file-opener');
 
@@ -47,11 +46,6 @@ class MyCamera extends Component {
   componentDidMount() {
     AppState.addEventListener('change', this._handleAppStateChange);
     Orientation.addOrientationListener(this._orientationDidChange);
-  }
-
-  componentWillUnmount() {
-    // Remember to remove listener
-    RNExitApp.exitApp();//I don't know if this is necessary and if it is not I need to remove it from everywhere
   }
 
   _orientationDidChange = (orientation) => {
@@ -239,7 +233,7 @@ class MyCamera extends Component {
             });
         }
       });
-    }, 1000);
+    }, 1);
   }
 
   getFileUri(videoPathTemp) {
