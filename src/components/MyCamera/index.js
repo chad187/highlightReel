@@ -85,6 +85,22 @@ class MyCamera extends Component {
     console.log("speech stopped");
   }
 
+  async _startRecognizing(e) {
+    try {
+      await Voice.start('en-US');
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  async _stopRecognizing(e) {
+    try {
+      await Voice.stop();
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
   _handleAppStateChange = (nextAppState) => {
     if ( nextAppState === 'background') {
       AppState.removeEventListener('change', this._handleAppStateChange);
@@ -164,11 +180,7 @@ class MyCamera extends Component {
   startRecord() {
     this.cameraManager(true);
     this.props.recordStatusChange(true);
-    try {
-      Voice.start('en-US');
-    } catch (e) {
-      console.error(e);
-    }
+    this._startRecognizing(this);
   }
 
   stopRecord() {
@@ -179,11 +191,7 @@ class MyCamera extends Component {
         clearTimeout(myTimer);
         this.cameraManager(false);
         this.props.recordStatusChange(false);
-        try {
-          Voice.stop();
-        } catch (e) {
-          console.error(e);
-        }
+        this._stopRecognizing(this)
       },1);
     }
   }
