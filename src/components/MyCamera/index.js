@@ -10,6 +10,7 @@ import { ProcessingManager } from 'react-native-video-processing';
 import Orientation from 'react-native-orientation';
 import KeepAwake from 'react-native-keep-awake';
 import Toast from 'react-native-root-toast';
+import Voice from 'react-native-voice';
 
 const FileOpener = require('react-native-file-opener');
 
@@ -27,6 +28,13 @@ class MyCamera extends Component {
     const initial = Orientation.getInitialOrientation();
     this.props.updateOrientation(initial, width, height);
     this.camera = null;
+    Voice.onSpeechStart = this.onSpeechStart.bind(this);
+    Voice.onSpeechRecognized = this.onSpeechRecognized.bind(this);
+    Voice.onSpeechEnd = this.onSpeechEnd.bind(this);
+    Voice.onSpeechError = this.onSpeechError.bind(this);
+    Voice.onSpeechResults = this.onSpeechResults.bind(this);
+    Voice.onSpeechPartialResults = this.onSpeechPartialResults.bind(this);
+    // Voice.onSpeechVolumeChanged = this.onSpeechVolumeChanged.bind(this);
   }
 
   componentDidUpdate() {
@@ -53,6 +61,30 @@ class MyCamera extends Component {
     this.props.updateOrientation(orientation, width, height);
   }
 
+  onSpeechPartialResults(e) {
+    console.log(e.value);
+  }
+
+  onSpeechResults(e) {
+    console.log(e.value);
+  }
+
+  onSpeechRecognized(e) {
+    console.log("speech recognized");
+  }
+
+  onSpeechStart(e) {
+    console.log("speech started");
+  }
+
+  onSpeechError(e) {
+    console.log("speech error: "+JSON.stringify(e.error));
+  }
+
+  onSpeechEnd(e) {
+    console.log("speech stopped");
+  }
+
   _handleAppStateChange = (nextAppState) => {
     if ( nextAppState === 'background') {
       AppState.removeEventListener('change', this._handleAppStateChange);
@@ -60,7 +92,7 @@ class MyCamera extends Component {
       clearTimeout(myTimer);
       this.stopRecord();
       this.props.previewChange(false);
-      //I might need to exit the app here as well but that will be ugly
+      Voice.destroy().then(Voice.removeAllListeners);
     }
 
     if (nextAppState === 'active') {
@@ -132,6 +164,11 @@ class MyCamera extends Component {
   startRecord() {
     this.cameraManager(true);
     this.props.recordStatusChange(true);
+    try {
+      Voice.start('en-US');
+    } catch (e) {
+      console.error(e);
+    }
   }
 
   stopRecord() {
@@ -142,6 +179,11 @@ class MyCamera extends Component {
         clearTimeout(myTimer);
         this.cameraManager(false);
         this.props.recordStatusChange(false);
+        try {
+          Voice.stop();
+        } catch (e) {
+          console.error(e);
+        }
       },1);
     }
   }
