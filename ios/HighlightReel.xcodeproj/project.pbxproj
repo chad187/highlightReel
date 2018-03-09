@@ -44,6 +44,7 @@
 		8DA38B695E9F4BBC969D08BA /* libKCKeepAwake.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 195F163EF3BA4449B9C1B703 /* libKCKeepAwake.a */; };
 		43B3BF80DFD243ACBC2E450D /* libRNFileOpener.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 0E1B043F813C436D82B84B89 /* libRNFileOpener.a */; };
 		13774AB8554D46C7913D3939 /* libRNExitApp.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 8414D33341E7403EAE260860 /* libRNExitApp.a */; };
+		DE817D6C1CD1458A8283A3BA /* libRCTSystemSetting.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 88ED545867804453B9072036 /* libRCTSystemSetting.a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -287,6 +288,8 @@
 		0E1B043F813C436D82B84B89 /* libRNFileOpener.a */ = {isa = PBXFileReference; name = "libRNFileOpener.a"; path = "libRNFileOpener.a"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = archive.ar; explicitFileType = undefined; includeInIndex = 0; };
 		D31BCEFEC9A142F7B8132D5B /* RNExitApp.xcodeproj */ = {isa = PBXFileReference; name = "RNExitApp.xcodeproj"; path = "../node_modules/react-native-exit-app/ios/RNExitApp.xcodeproj"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = wrapper.pb-project; explicitFileType = undefined; includeInIndex = 0; };
 		8414D33341E7403EAE260860 /* libRNExitApp.a */ = {isa = PBXFileReference; name = "libRNExitApp.a"; path = "libRNExitApp.a"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = archive.ar; explicitFileType = undefined; includeInIndex = 0; };
+		9F219C2D2B314FF390CC2CEC /* RCTSystemSetting.xcodeproj */ = {isa = PBXFileReference; name = "RCTSystemSetting.xcodeproj"; path = "../node_modules/react-native-system-setting/ios/RCTSystemSetting.xcodeproj"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = wrapper.pb-project; explicitFileType = undefined; includeInIndex = 0; };
+		88ED545867804453B9072036 /* libRCTSystemSetting.a */ = {isa = PBXFileReference; name = "libRCTSystemSetting.a"; path = "libRCTSystemSetting.a"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = archive.ar; explicitFileType = undefined; includeInIndex = 0; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -323,6 +326,7 @@
 				8DA38B695E9F4BBC969D08BA /* libKCKeepAwake.a in Frameworks */,
 				43B3BF80DFD243ACBC2E450D /* libRNFileOpener.a in Frameworks */,
 				13774AB8554D46C7913D3939 /* libRNExitApp.a in Frameworks */,
+				DE817D6C1CD1458A8283A3BA /* libRCTSystemSetting.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -499,6 +503,7 @@
 				467AA6E8E39A40D08FAD035E /* KCKeepAwake.xcodeproj */,
 				53683CE95C8F40219C721E3B /* RNFileOpener.xcodeproj */,
 				D31BCEFEC9A142F7B8132D5B /* RNExitApp.xcodeproj */,
+				9F219C2D2B314FF390CC2CEC /* RCTSystemSetting.xcodeproj */,
 			);
 			name = Libraries;
 			sourceTree = "<group>";
@@ -1047,6 +1052,7 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"$(SRCROOT)/$(TARGET_NAME)\"",
+					"\"$(SRCROOT)/$(TARGET_NAME)\"",
 				);
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
@@ -1057,6 +1063,7 @@
 					"$(SRCROOT)\..\node_modules\react-native-orientation\iOS\RCTOrientation/**",
 					"$(SRCROOT)\..\node_modules\react-native-keep-awake\ios",
 					"$(SRCROOT)\..\node_modules\react-native-file-opener\ios\RNFileOpener",
+					"$(SRCROOT)\..\node_modules\react-native-system-setting\ios",
 				);
 			};
 			name = Debug;
@@ -1078,6 +1085,7 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"$(SRCROOT)/$(TARGET_NAME)\"",
+					"\"$(SRCROOT)/$(TARGET_NAME)\"",
 				);
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
@@ -1088,6 +1096,7 @@
 					"$(SRCROOT)\..\node_modules\react-native-orientation\iOS\RCTOrientation/**",
 					"$(SRCROOT)\..\node_modules\react-native-keep-awake\ios",
 					"$(SRCROOT)\..\node_modules\react-native-file-opener\ios\RNFileOpener",
+					"$(SRCROOT)\..\node_modules\react-native-system-setting\ios",
 				);
 			};
 			name = Release;
@@ -1116,6 +1125,7 @@
 					"$(SRCROOT)\..\node_modules\react-native-orientation\iOS\RCTOrientation/**",
 					"$(SRCROOT)\..\node_modules\react-native-keep-awake\ios",
 					"$(SRCROOT)\..\node_modules\react-native-file-opener\ios\RNFileOpener",
+					"$(SRCROOT)\..\node_modules\react-native-system-setting\ios",
 				);
 			};
 			name = Debug;
@@ -1143,6 +1153,7 @@
 					"$(SRCROOT)\..\node_modules\react-native-orientation\iOS\RCTOrientation/**",
 					"$(SRCROOT)\..\node_modules\react-native-keep-awake\ios",
 					"$(SRCROOT)\..\node_modules\react-native-file-opener\ios\RNFileOpener",
+					"$(SRCROOT)\..\node_modules\react-native-system-setting\ios",
 				);
 			};
 			name = Release;
@@ -1173,6 +1184,7 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"$(SRCROOT)/$(TARGET_NAME)\"",
+					"\"$(SRCROOT)/$(TARGET_NAME)\"",
 				);
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
@@ -1183,6 +1195,7 @@
 					"$(SRCROOT)\..\node_modules\react-native-orientation\iOS\RCTOrientation/**",
 					"$(SRCROOT)\..\node_modules\react-native-keep-awake\ios",
 					"$(SRCROOT)\..\node_modules\react-native-file-opener\ios\RNFileOpener",
+					"$(SRCROOT)\..\node_modules\react-native-system-setting\ios",
 				);
 			};
 			name = Debug;
@@ -1213,6 +1226,7 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"$(SRCROOT)/$(TARGET_NAME)\"",
+					"\"$(SRCROOT)/$(TARGET_NAME)\"",
 				);
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
@@ -1223,6 +1237,7 @@
 					"$(SRCROOT)\..\node_modules\react-native-orientation\iOS\RCTOrientation/**",
 					"$(SRCROOT)\..\node_modules\react-native-keep-awake\ios",
 					"$(SRCROOT)\..\node_modules\react-native-file-opener\ios\RNFileOpener",
+					"$(SRCROOT)\..\node_modules\react-native-system-setting\ios",
 				);
 			};
 			name = Release;
@@ -1248,6 +1263,7 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"$(SRCROOT)/$(TARGET_NAME)\"",
+					"\"$(SRCROOT)/$(TARGET_NAME)\"",
 				);
 			};
 			name = Debug;
@@ -1272,6 +1288,7 @@
 				TVOS_DEPLOYMENT_TARGET = 10.1;
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
+					"\"$(SRCROOT)/$(TARGET_NAME)\"",
 					"\"$(SRCROOT)/$(TARGET_NAME)\"",
 				);
 			};

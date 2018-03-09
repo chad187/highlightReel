@@ -10,6 +10,7 @@ import { ProcessingManager } from 'react-native-video-processing';
 import Orientation from 'react-native-orientation';
 import KeepAwake from 'react-native-keep-awake';
 import Toast from 'react-native-root-toast';
+import SystemSetting from 'react-native-system-setting'
 
 const FileOpener = require('react-native-file-opener');
 
@@ -17,7 +18,7 @@ var RNFS = require('react-native-fs');
 
 const styles = require('./style');
 
-var nextVidPath = null, previousVidPath = null, myTimer, saveClip, restart, betweenStopAndStart;
+var nextVidPath = null, previousVidPath = null, myTimer, saveClip, restart, betweenStopAndStart, volumeListener, allow = true;
 
 class MyCamera extends Component {
 
@@ -46,6 +47,7 @@ class MyCamera extends Component {
   componentDidMount() {
     AppState.addEventListener('change', this._handleAppStateChange);
     Orientation.addOrientationListener(this._orientationDidChange);
+    volumeListener = SystemSetting.addVolumeListener(this._handleVolumePress);
   }
 
   _orientationDidChange = (orientation) => {
@@ -53,10 +55,26 @@ class MyCamera extends Component {
     this.props.updateOrientation(orientation, width, height);
   }
 
+  _handleVolumePress = (data) => {
+    if (allow) {
+      allow = false;
+      if(this.props.isRecording){
+        this.saveClip();
+      }
+      else {
+        this.startRecord();
+      }
+      setTimeout(() => {
+        allow = true;
+      },750);
+    }
+  }
+
   _handleAppStateChange = (nextAppState) => {
     if ( nextAppState === 'background') {
       AppState.removeEventListener('change', this._handleAppStateChange);
       Orientation.removeOrientationListener(this._orientationDidChange);
+      SystemSetting.removeVolumeListener(volumeListener);
       clearTimeout(myTimer);
       this.stopRecord();
       this.props.previewChange(false);
@@ -66,6 +84,7 @@ class MyCamera extends Component {
     if (nextAppState === 'active') {
       AppState.addEventListener('change', this._handleAppStateChange);
       Orientation.addOrientationListener(this._orientationDidChange);
+      volumeListener = SystemSetting.addVolumeListener(this._handleVolumePress);
       this.props.previewChange(true);
     }
   }
@@ -246,16 +265,6 @@ class MyCamera extends Component {
   }
 
   joinVideos(clippedVidPath, previousVid, nextVid) {
-    // ProcessingManager.getVideoInfo(nextVid)
-    //   .then(({ duration }) => {
-    //     console.log("nextvid length: " + duration);
-    //   });
-
-    // ProcessingManager.getVideoInfo(clippedVidPath)
-    //   .then(({ duration }) => {
-    //     console.log("clippedVid length: " + duration);
-    //   });
-
     RNVideoEditor.merge(
       [clippedVidPath, nextVid],
       (results) => {
@@ -281,13 +290,6 @@ class MyCamera extends Component {
         startTime: startTime,
         endTime: endTime,
     };
-
-    // ProcessingManager.getVideoInfo(source)
-    //   .then(({ duration }) => {
-    //     console.log("source length: " + duration);
-    //     console.log("startTime: " + startTime);
-    //     console.log("endTime: " + endTime);
-    //   });
 
     ProcessingManager.trim(source, options) // like VideoPlayer trim options
           .then((data) => {

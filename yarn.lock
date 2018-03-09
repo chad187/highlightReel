@@ -4687,6 +4687,10 @@ react-native-scripts@^1.5.0:
     rimraf "^2.6.1"
     xdl "47.0.4"
 
+react-native-system-setting@^1.2.3:
+  version "1.2.3"
+  resolved "https://registry.yarnpkg.com/react-native-system-setting/-/react-native-system-setting-1.2.3.tgz#b7ff379fe03dc6942ca9822161e336fa1fe2b5d2"
+
 react-native-video-editor@^0.1.1:
   version "0.1.1"
   resolved "https://registry.yarnpkg.com/react-native-video-editor/-/react-native-video-editor-0.1.1.tgz#d56775f553cd942de261ec57b9c70f8a1ac96ed4"
